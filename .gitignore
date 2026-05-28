@@ -1,0 +1,8 @@
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Obsidian workspace/session state (keep the vault, ignore local UI state)
+.obsidian/workspace*
+.obsidian/cache
+.trash/

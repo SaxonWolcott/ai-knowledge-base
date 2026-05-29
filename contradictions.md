@@ -15,7 +15,7 @@ Format: `- [[concept-page]] — one-line description of the dispute (Source A sa
 
 ## Open
 
-_(none yet)_
+- [[neural-network]] — does a trained hidden layer actually learn the clean edge/subcomponent detectors the layered structure motivates? [[but-what-is-a-neural-network]] presents this as a *hope*, not a finding, and flags that learned weights look much messier. (Design intuition: yes; literal description of learned representations: contested.)
 
 ## Resolved
 

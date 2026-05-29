@@ -27,3 +27,20 @@ dangling links (TODO markers) for lint to surface. No contradictions. Updated `i
 Filed answer as synthesis page `synthesis/transformers-explained-simply.md` (entry-level
 explainer). Updated `index.md` (Analysis). Also: noted `wiki/` was renamed to `AI Knowledge
 Base/` in Obsidian and updated `CLAUDE.md` §2/§3 to match.
+
+## [2026-05-29] schema  | Added YouTube ingest path
+
+Built `/ingest-youtube` (transcript-first via `yt-dlp`; visuals opt-in via `ffmpeg` frames,
+two-gate model) + `scripts/clean_vtt.py` (VTT→Markdown cleaner). Updated `CLAUDE.md` §3/§5/§7/
+§8/§12/§13 and `.gitignore` (ignore transient `raw/youtube/**/video.*`). First implementation
+of the deferred "helper CLI scripts" item in §12.
+
+## [2026-05-29] ingest | But what is a Neural Network? (3Blue1Brown, DL Ch.1)
+
+First YouTube ingest (id `aircAruvnKk`). Manual captions → `transcript.md`; captured 5 frames
+(architecture, edge-cascade, weight grid, sigmoid curve, matrix-vector form), video discarded.
+Created `sources/but-what-is-a-neural-network`, concepts `neural-network` + `activation-function`
+(sigmoid/relu as sections), entities `3blue1brown` + `mnist`. Logged a contradiction: the
+edges→subcomponents "hope" is contested as a literal description of learned representations.
+Updated `index.md` and `contradictions.md`. Dangling TODOs left: `backpropagation`,
+`gradient-descent`, `sigmoid`, `relu`, `softmax`.

@@ -25,7 +25,7 @@ pattern by operating it.
 ## 2. Architecture (three layers)
 
 - **`raw/` — immutable sources.** The source of truth. Read from it; **never modify it.**
-- **The wiki (`wiki/` + special pages) — LLM-owned.** Everything you create and maintain:
+- **The wiki (`AI Knowledge Base/` + special pages) — LLM-owned.** Everything you create and maintain:
   entity pages, concept pages, source summaries, comparison/synthesis pages, and the special
   files (`index.md`, `log.md`, `overview.md`, `contradictions.md`).
 - **The schema (this file) — config.** Co-evolved with the human. When a convention proves
@@ -42,7 +42,7 @@ knowledge-base/
 ├─ contradictions.md   # registry of disputed claims (links out)
 ├─ llm-wiki.md         # reference: the pattern this wiki implements
 ├─ raw/               # immutable sources
-└─ wiki/
+└─ AI Knowledge Base/  # the wiki (folder renamed from wiki/ in Obsidian)
    ├─ entities/        # real-world things
    ├─ concepts/        # ideas about how AI works
    └─ sources/         # one summary page per substantial source
@@ -103,9 +103,16 @@ This table is the heart of the wiki's judgment — a tweet is a flagged claim, n
 ## 8. Operations
 
 ### Ingest (INTERACTIVE — the default)
-1. Locate the source. If the human gave a URL, `WebFetch` it and save a markdown copy to
-   `raw/` first (filename = kebab-case title). If it's a tweet, save the text to
-   `raw/tweets/` or just work from the pasted text — no `raw/` file required for a one-liner.
+1. Locate the source. Sources reach `raw/` by one of three paths:
+   - **Already clipped** — the human may have used the **Obsidian Web Clipper** browser
+     extension to save the page as markdown into `raw/`. This is the preferred path for
+     paywalled, login-gated, or JavaScript-heavy pages that programmatic fetching can't
+     reach. Check `raw/` for the file before fetching anything.
+   - **URL given to you** — for open, simple pages (e.g. arXiv), `WebFetch` it and save a
+     markdown copy to `raw/` yourself (filename = kebab-case title). If `WebFetch` is blocked
+     or returns junk, tell the human to clip it with the Web Clipper instead.
+   - **Tweet** — save the text to `raw/tweets/` or just work from the pasted text; no `raw/`
+     file required for a one-liner.
 2. Read it fully.
 3. **Discuss key takeaways with the human and wait for direction before writing pages.**
    Surface: what's new, what it connects to, what it contradicts, what's worth a page.

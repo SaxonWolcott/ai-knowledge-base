@@ -121,7 +121,20 @@ video is transcript-first with visuals captured only where the transcript can't 
 
 ## 8. Operations
 
-### Ingest (INTERACTIVE — the default)
+### Ingest (two modes — see `/ingest`)
+`/ingest <source>` runs **Mode A** (interactive, single source) — the default below.
+`/ingest` with **no argument** runs **Mode B** (autonomous batch) — ingest every new source
+in `raw/` in one pass, making all editorial decisions yourself with no discussion gate. It
+first **materializes the YouTube inbox** (`raw/youtube/inbox.md`, a queue of pasted video URLs
+— the only source type needing a fetch step, since clips arrive finished): fetch the
+transcript for any link not yet in `raw/youtube/<id>/`, then treat it as a new source. Detect
+"new" by what's absent from `index.md` Sources + `log.md` ingest entries; log contradictions
+to `contradictions.md` rather than escalating; write one `log.md` ingest entry per source plus
+**one short `ingest-batch` summary line**; end with a terminal report surfacing the judgment
+calls worth my review. The steps below describe Mode A; Mode B follows the same integration
+(step 4) but skips step 3's discussion.
+
+#### Mode A — interactive single source
 1. Locate the source. Sources reach `raw/` by one of three paths:
    - **Already clipped** — the human may have used the **Obsidian Web Clipper** browser
      extension to save the page as markdown into `raw/`. This is the preferred path for
@@ -231,7 +244,14 @@ Avoid building these prematurely — Karpathy's point is the index + a good sche
   one being "information referenced but absent from the words") is curated interactively, same
   spirit as credibility-weighted tweet ingest. Gemini multimodal rejected: derived not raw,
   plus a billed dependency.
-- **Interactive ingest** — chosen for learning and control; you discuss before writing.
+- **Interactive ingest is the per-source default; autonomous batch is the bulk path** —
+  Mode A (`/ingest <source>`) discusses before writing, chosen for learning and control. But
+  batching the *interaction* doesn't help: it just defers per-source Q&A to long after reading,
+  when context has decayed. So Mode B (`/ingest`, no arg) trades that learning loop for
+  throughput — ingest all new `raw/` sources autonomously, make every call yourself, and
+  surface the judgment calls in a final report (the review surface in lieu of live discussion).
+  Batching also *improves* synthesis: sources ingested together can be cross-referenced and
+  their mutual contradictions resolved in one pass, which the one-at-a-time flow can't do.
 - **Main-agent-only Phase 1** — subagents buy context isolation + parallelism, not token
   savings; a paper-reader subagent would strip raw material out of interactive discussion,
   and lint fan-out only pays off at scale. See §12 for when to revisit.

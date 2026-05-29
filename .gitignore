@@ -2,7 +2,7 @@
 .DS_Store
 Thumbs.db
 
-# Obsidian workspace/session state (keep the vault, ignore local UI state)
-.obsidian/workspace*
-.obsidian/cache
+# Obsidian config/state (ignore all of it, anywhere in the vault)
+.obsidian/
+**/.obsidian/
 .trash/

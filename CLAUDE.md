@@ -41,7 +41,10 @@ knowledge-base/
 ├─ overview.md         # living "state of the field" synthesis
 ├─ contradictions.md   # registry of disputed claims (links out)
 ├─ llm-wiki.md         # reference: the pattern this wiki implements
+├─ scripts/            # helper scripts (e.g. clean_vtt.py — VTT→Markdown transcript cleaner)
 ├─ raw/               # immutable sources
+│  ├─ clips/          # Obsidian Web Clipper saves
+│  └─ youtube/<id>/   # per-video: raw .vtt, transcript.md, metadata.json (slim), frames/
 └─ AI Knowledge Base/  # the wiki (folder renamed from wiki/ in Obsidian)
    ├─ entities/        # real-world things
    ├─ concepts/        # ideas about how AI works
@@ -78,6 +81,9 @@ tags: [model, lab, ...]
 ---
 ```
 Source pages add: `source-type:`, `source-url:`, `author:`, `published:`.
+YouTube source pages additionally add: `channel:`, `video-id:`, `duration:`,
+`transcript: auto | manual`, and `visuals: captured | partial | none` (whether frames were
+grabbed for the video's visual moments — see `/ingest-youtube`).
 Apply `confidence: confirmed | contested | unverified` to a page or an individual claim
 wherever credibility matters (especially anything sourced from a tweet).
 
@@ -86,7 +92,18 @@ wherever credibility matters (especially anything sourced from a tweet).
 - Link **liberally** with `[[wikilinks]]` (Obsidian style). Every entity/concept mention
   that has (or deserves) a page should be linked.
 - **Dangling links are allowed** and encouraged as TODO markers — `[[constitutional-ai]]`
-  before that page exists flags it as worth writing. Lint surfaces these.
+  before that page exists flags it as worth writing. Lint surfaces these. A dangling link is a
+  promise that the concept **deserves its own page** that doesn't exist yet.
+- **Page links vs. heading links — pick by intent, because a dangling link auto-creates an
+  empty page in Obsidian when clicked:**
+  - **Page link `[[thing]]`** — use when `thing` is (or should become) its own page. If it
+    doesn't exist yet, that's an intentional TODO.
+  - **Heading link `[[page#Heading|display text]]`** — use when the concept deliberately lives
+    as a *section* of an existing page, not as its own page. It navigates to that section and
+    creates nothing. Example: sigmoid/relu live as sections of `activation-function`, so link
+    `[[activation-function#Sigmoid|sigmoid]]`, **not** `[[sigmoid]]`. Never leave a bare
+    dangling link for something you've decided is a section — that falsely signals "write this
+    page."
 - Prefer linking to a page over re-explaining a concept inline.
 
 ## 7. Source-type / credibility table (drives ingest treatment)
@@ -96,9 +113,11 @@ wherever credibility matters (especially anything sourced from a tweet).
 | arXiv paper        | high   | high (but unreviewed)  | Full `sources/` page; extract claims, methods, ablations. |
 | Lab blog / release | high   | high but promotional   | `sources/` page; flag marketing/unverified-benchmark claims. |
 | Analysis / Substack| medium | varies                 | `sources/` page; attribute opinions to the author. |
+| **YouTube video**  | high   | varies by format       | Full `sources/` page via `/ingest-youtube` (transcript-first, visuals opt-in). Credibility tracks the format: lab/conference **talk** ≈ lab blog (high but promotional); **paper walkthrough** inherits the paper's credibility; speculative **talking-head** take ≈ tweet-tier → attribute opinions to the speaker. Always record the `visuals:` flag. |
 | **Tweet**          | low    | low                    | **No source page.** Append a `confidence: unverified` claim to the relevant concept/entity page, attributed to the author + link. |
 
-This table is the heart of the wiki's judgment — a tweet is a flagged claim, not a page.
+This table is the heart of the wiki's judgment — a tweet is a flagged claim, not a page; a
+video is transcript-first with visuals captured only where the transcript can't stand alone.
 
 ## 8. Operations
 
@@ -113,6 +132,10 @@ This table is the heart of the wiki's judgment — a tweet is a flagged claim, n
      or returns junk, tell the human to clip it with the Web Clipper instead.
    - **Tweet** — save the text to `raw/tweets/` or just work from the pasted text; no `raw/`
      file required for a one-liner.
+   - **YouTube video** — `WebFetch` can't read video. Use **`/ingest-youtube`**, which pulls
+     the transcript with `yt-dlp` (transcript-first; visuals captured as `ffmpeg` frames only
+     for moments the transcript can't convey). A YouTube URL handed to `/ingest` should be
+     redirected there. Full mechanics live in that command, not here.
 2. Read it fully.
 3. **Discuss key takeaways with the human and wait for direction before writing pages.**
    Surface: what's new, what it connects to, what it contradicts, what's worth a page.
@@ -164,8 +187,18 @@ resolution.
 
 ## 12. Tooling status & roadmap
 
-**Current (Phase 1):** main agent only + three slash commands (`/ingest`, `/query`,
-`/lint`) + built-in `WebSearch`/`WebFetch`. No subagents, MCP, scripts, or hooks.
+**Current (Phase 1):** main agent only + four slash commands (`/ingest`, `/ingest-youtube`,
+`/query`, `/lint`) + built-in `WebSearch`/`WebFetch`. One helper script (`scripts/clean_vtt.py`,
+added for YouTube transcript cleanup — see below). No subagents, MCP, or hooks.
+
+**Added:**
+- **`/ingest-youtube` + `scripts/clean_vtt.py`** — YouTube is a primary knowledge source for
+  the human. Transcript-first (`yt-dlp`, free, true `raw/` artifact); visuals captured as
+  `ffmpeg` frames only for moments the transcript can't convey, decided interactively
+  (two-gate model: format sets sensitivity, caption signals trigger). `clean_vtt.py` exists
+  because deduping/cleaning rolling auto-sub VTT in-context is tedious and non-deterministic
+  (§12's "when manual gets tedious" trigger). Gemini multimodal was rejected — derived (not
+  raw) output + a billed dependency; revisit only if frame-grabbing proves insufficient.
 
 **Deferred — add only when the wiki demands it (record the trigger):**
 - **Lint fan-out subagent (`model: haiku`)** — when the wiki passes ~100 pages or `/lint`
@@ -191,6 +224,13 @@ Avoid building these prematurely — Karpathy's point is the index + a good sche
   do not create it.
 - **Tweets are claims, not pages** (§7) — credibility-weighted ingest is the wiki's core
   judgment and the most interesting thing to get right.
+- **YouTube is transcript-first, visuals on-demand** (§7, `/ingest-youtube`) — the transcript
+  is a true immutable `raw/` artifact; visuals are an opt-in escalation, captured as frames
+  only where the transcript can't stand alone. The judgment of *when* to look at the visuals
+  (two-gate model: format = sensitivity dial, caption signals = per-moment trigger, the key
+  one being "information referenced but absent from the words") is curated interactively, same
+  spirit as credibility-weighted tweet ingest. Gemini multimodal rejected: derived not raw,
+  plus a billed dependency.
 - **Interactive ingest** — chosen for learning and control; you discuss before writing.
 - **Main-agent-only Phase 1** — subagents buy context isolation + parallelism, not token
   savings; a paper-reader subagent would strip raw material out of interactive discussion,

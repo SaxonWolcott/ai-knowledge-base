@@ -6,3 +6,11 @@ Thumbs.db
 .obsidian/
 **/.obsidian/
 .trash/
+
+# Downloaded YouTube video files — transient; /ingest-youtube deletes them after
+# extracting frames. Guard against committing one if cleanup is ever skipped.
+raw/youtube/**/video.*
+
+# Full yt-dlp metadata dumps (~14 MB, mostly expiring URLs). /ingest-youtube slims these
+# into a small metadata.json and deletes the dump; this guards a skipped deletion.
+raw/youtube/**/*.info.json

@@ -105,7 +105,7 @@ direction before writing pages.**
 - Briefly report which pages you touched.
 
 ## Source-page shape
-`AI Knowledge Base/sources/<kebab-title>.md`, matching the conventions in
+`wiki/sources/<kebab-title>.md`, matching the conventions in
 `sources/attention-is-all-you-need.md` (frontmatter → one-sentence definition → sections →
 `## Connections`). Frontmatter — standard source fields plus the YouTube ones:
 ```yaml

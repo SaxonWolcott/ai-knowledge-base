@@ -25,7 +25,7 @@ pattern by operating it.
 ## 2. Architecture (three layers)
 
 - **`raw/` — immutable sources.** The source of truth. Read from it; **never modify it.**
-- **The wiki (`AI Knowledge Base/` + special pages) — LLM-owned.** Everything you create and maintain:
+- **The wiki (`wiki/` + special pages) — LLM-owned.** Everything you create and maintain:
   entity pages, concept pages, source summaries, comparison/synthesis pages, and the special
   files (`index.md`, `log.md`, `overview.md`, `contradictions.md`).
 - **The schema (this file) — config.** Co-evolved with the human. When a convention proves
@@ -47,10 +47,11 @@ knowledge-base/
 ├─ raw/               # immutable sources
 │  ├─ clips/          # Obsidian Web Clipper saves
 │  └─ youtube/<id>/   # per-video: raw .vtt, transcript.md, metadata.json (slim), frames/
-└─ AI Knowledge Base/  # the wiki (folder renamed from wiki/ in Obsidian)
+└─ wiki/               # the wiki
    ├─ entities/        # real-world things
    ├─ concepts/        # ideas about how AI works
-   └─ sources/         # one summary page per substantial source
+   ├─ sources/         # one summary page per substantial source
+   └─ synthesis/       # comparison/synthesis pages compiled from queries
 ```
 
 ## 4. Page types & conventions
@@ -187,9 +188,9 @@ knowledge**. Keep them apart.
 
 - **Persist-as-knowledge** is step 4 above: filing a `synthesis`/`comparison` page is the
   *canonical* act of compounding the wiki — integrated, `[[linked]]`, indexed, logged, living
-  in `AI Knowledge Base/`. This is unchanged and is **not** the same as a markdown export.
+  in `wiki/`. This is unchanged and is **not** the same as a markdown export.
 - **Render format** is the delivery tier, and its outputs live in `query-responses/` (gitignored,
-  derived) — **never** in `AI Knowledge Base/`, so they don't pollute the graph with unlinked
+  derived) — **never** in `wiki/`, so they don't pollute the graph with unlinked
   duplicates that `/lint` would flag.
 
 Three render tiers:

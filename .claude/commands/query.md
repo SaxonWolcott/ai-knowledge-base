@@ -50,7 +50,7 @@ Exports go in `query-responses/` (gitignored) — they are reading copies, **nev
   derived claim has a `†` and a `.grounding` note, file renders offline (no network requests).
 
 **Persist** — separately, if the answer is substantial or reusable, **offer to file it back**
-as a `comparison`/`synthesis` page in `AI Knowledge Base/` so the exploration compounds (this
+as a `comparison`/`synthesis` page in `wiki/` so the exploration compounds (this
 is the canonical wiki act; if filed, update `index.md` and `log.md`). This is independent of
 which render tier was used.
 

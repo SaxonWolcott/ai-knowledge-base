@@ -14,3 +14,7 @@ raw/youtube/**/video.*
 # Full yt-dlp metadata dumps (~14 MB, mostly expiring URLs). /ingest-youtube slims these
 # into a small metadata.json and deletes the dump; this guards a skipped deletion.
 raw/youtube/**/*.info.json
+
+# Query export renders (md/html reading copies written by /query). Derived from the wiki,
+# not canonical knowledge — kept out of the repo and the graph. See CLAUDE.md §8.
+query-responses/

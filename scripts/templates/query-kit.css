@@ -1,0 +1,252 @@
+/* ============================================================================
+   query-kit.css — shared style kit for /query HTML exports (CLAUDE.md §8)
+
+   This is the THIN, REUSABLE layer: design tokens + the 4 recurring
+   wiki-semantic components. INLINE this whole file into each export's <style>
+   block — exports are self-contained single files that must render OFFLINE.
+
+   What this kit owns: the recurring "chrome" that should look identical and be
+   semantically correct across every answer — citations, confidence badges,
+   `## Disputed` callouts, and video-frame figures.
+
+   What this kit does NOT own: per-answer layout, hero treatment, color mood
+   beyond the tokens, and ESPECIALLY diagrams. Those are bespoke per answer —
+   design them freshly (inline SVG only; no CDN/JS libraries). The kit is a
+   vocabulary, not a page template.
+
+   Aesthetic: "research dossier" — warm paper, oxblood accent, serif display,
+   hairline rules, monospace labels. Fonts are intentionally a LOCAL stack (no
+   web-font CDN) so the file renders with zero network requests. Tune the tokens
+   per answer if a different mood fits; keep the component structure.
+   ============================================================================ */
+
+:root {
+  /* ---- palette (light / "paper") ---- */
+  --paper:       #f5f0e6;
+  --paper-edge:  #ece3d3;
+  --panel:       #ebe2d1;
+  --ink:         #211c16;
+  --ink-soft:    #4d453a;
+  --ink-faint:   #8a8071;
+  --rule:        #d9cfba;
+  --accent:      #9b2d20;   /* oxblood */
+  --accent-2:    #c2602f;   /* rust */
+
+  /* ---- confidence semantics ---- */
+  --ok:        #2f6b3a;
+  --ok-bg:     #e4ecdf;
+  --warn:      #9a6a12;
+  --warn-bg:   #f0e6cf;
+  --unknown:   #6b6358;
+  --unknown-bg:#e7e0d2;
+
+  /* ---- type (local fonts only — offline-safe) ---- */
+  --font-display: "Constantia", "Cambria", "Palatino Linotype", "Iowan Old Style", Georgia, serif;
+  --font-body:    "Cambria", "Palatino Linotype", "Iowan Old Style", Georgia, serif;
+  --font-mono:    "Cascadia Mono", "Consolas", "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  /* ---- rhythm ---- */
+  --measure: 70ch;
+  --gap: 1.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper:      #181511;
+    --paper-edge: #221d16;
+    --panel:      #221d16;
+    --ink:        #ece3d0;
+    --ink-soft:   #c3b8a3;
+    --ink-faint:  #8a8071;
+    --rule:       #38301f;
+    --accent:     #e07a5f;
+    --accent-2:   #d99a5b;
+    --ok:        #8fbf86;  --ok-bg:     #1d2a1c;
+    --warn:      #d9ab5b;  --warn-bg:   #2c2410;
+    --unknown:   #b3a896;  --unknown-bg:#262015;
+  }
+}
+
+/* ---------- base ---------- */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.dossier {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 4rem) clamp(1.25rem, 5vw, 3rem) 6rem;
+}
+
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; font-weight: 700; }
+h1 { font-size: clamp(2rem, 5vw, 3rem); margin: 0 0 .25em; letter-spacing: -0.01em; }
+h2 {
+  font-size: 1.6rem; margin: 2.5em 0 .6em;
+  padding-bottom: .3em; border-bottom: 1px solid var(--rule);
+}
+h3 { font-size: 1.2rem; margin: 1.8em 0 .4em; color: var(--ink-soft); }
+
+p { margin: 0 0 1em; }
+a { color: var(--accent); text-underline-offset: 2px; }
+strong { color: var(--ink); }
+hr { border: 0; border-top: 1px solid var(--rule); margin: 2.5em 0; }
+
+code, pre { font-family: var(--font-mono); font-size: .92em; }
+pre {
+  background: var(--panel); border: 1px solid var(--rule);
+  padding: 1rem 1.1rem; border-radius: 6px; overflow-x: auto;
+}
+code { background: var(--panel); padding: .1em .35em; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+
+/* a small-caps monospace label, used throughout */
+.label {
+  font-family: var(--font-mono); font-size: .7rem; font-weight: 600;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint);
+}
+
+/* ---------- document header ---------- */
+.dossier__head { margin-bottom: 3rem; }
+.dossier__kicker { color: var(--accent); }
+.dossier__meta {
+  margin-top: .9rem; padding-top: .9rem; border-top: 2px solid var(--ink);
+  display: flex; flex-wrap: wrap; gap: 1.25rem;
+  font-family: var(--font-mono); font-size: .8rem; color: var(--ink-soft);
+}
+.dossier__meta b { color: var(--ink); font-weight: 600; }
+
+/* ---------- tables ---------- */
+table { width: 100%; border-collapse: collapse; margin: 1.5em 0; font-size: .96rem; }
+th, td { text-align: left; padding: .6em .8em; border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th {
+  font-family: var(--font-mono); font-size: .72rem; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-faint); border-bottom: 2px solid var(--ink);
+}
+tbody tr:hover { background: var(--panel); }
+
+/* ============================================================================
+   COMPONENT 1 — wikilinks
+   Decision (§8): [[wikilinks]] render as styled PLAIN TEXT, not anchors —
+   Obsidian linking doesn't resolve in a browser. Render the page name only.
+   Usage: <span class="wikilink">mixture-of-experts</span>
+   ============================================================================ */
+.wikilink {
+  font-weight: 600;
+  color: var(--accent);
+  border-bottom: 1px dotted var(--accent-2);
+  cursor: help;
+}
+
+/* ============================================================================
+   COMPONENT 2 — citations
+   Inline marker + a footnote list at the foot of the document.
+   Usage inline:  <sup class="cite">[1]</sup>
+   Usage list:    <ol class="citations"><li id="c1">Author — Title. <span class="cite-src">arXiv:…</span></li></ol>
+   ============================================================================ */
+.cite {
+  font-family: var(--font-mono); font-size: .68em; font-weight: 600;
+  color: var(--accent); vertical-align: super; line-height: 0; padding-left: 1px;
+}
+.citations {
+  margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule);
+  font-size: .9rem; color: var(--ink-soft); line-height: 1.5;
+}
+.citations li { margin-bottom: .5em; }
+.citations .cite-src { font-family: var(--font-mono); font-size: .85em; color: var(--ink-faint); }
+
+/* ============================================================================
+   COMPONENT 3 — confidence badge  (frontmatter `confidence:` — §5)
+   Usage: <span class="conf conf--confirmed">confirmed</span>
+          values: confirmed | contested | unverified
+   Put one on any contested/unverified claim (QA checklist, §8).
+   ============================================================================ */
+.conf {
+  display: inline-block; font-family: var(--font-mono); font-size: .66rem;
+  font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  padding: .15em .55em; border-radius: 999px; border: 1px solid currentColor;
+  vertical-align: middle; white-space: nowrap;
+}
+.conf::before { content: "● "; font-size: .7em; }
+.conf--confirmed  { color: var(--ok);      background: var(--ok-bg); }
+.conf--contested  { color: var(--warn);    background: var(--warn-bg); }
+.conf--unverified { color: var(--unknown); background: var(--unknown-bg); }
+
+/* ============================================================================
+   COMPONENT 4 — disputed callout  (`## Disputed` content — §8/§11)
+   Usage:
+     <aside class="disputed">
+       <span class="label">Disputed</span>
+       <p>… the dispute, with sides attributed …</p>
+     </aside>
+   ============================================================================ */
+.disputed {
+  margin: 1.75em 0; padding: 1rem 1.25rem; background: var(--warn-bg);
+  border-left: 4px solid var(--warn); border-radius: 0 6px 6px 0;
+}
+.disputed .label { color: var(--warn); display: block; margin-bottom: .4em; }
+.disputed p:last-child { margin-bottom: 0; }
+
+/* ============================================================================
+   COMPONENT 5 — video-frame figure  (raw/youtube/<id>/frames/ — §5/§7)
+   Embed a captured frame with caption + attribution. Use a relative path to
+   raw/youtube/<id>/frames/, or base64 if the file will travel.
+   Usage:
+     <figure class="video-frame">
+       <img src="../raw/youtube/<id>/frames/03.png" alt="…">
+       <figcaption>Caption of what the frame shows.
+         <span class="video-frame__attr">Channel — Title (t=12:30)</span>
+       </figcaption>
+     </figure>
+   ============================================================================ */
+.video-frame { margin: 2em 0; }
+.video-frame img {
+  display: block; width: 100%; height: auto; border-radius: 8px;
+  border: 1px solid var(--rule); box-shadow: 0 8px 24px rgba(0,0,0,.12);
+}
+.video-frame figcaption {
+  margin-top: .6em; font-size: .9rem; color: var(--ink-soft); line-height: 1.45;
+}
+.video-frame__attr {
+  display: block; margin-top: .2em;
+  font-family: var(--font-mono); font-size: .75rem; color: var(--ink-faint);
+}
+
+/* ============================================================================
+   COMPONENT 6 — grounding signal  (training-derived content — CLAUDE.md §8 Query)
+   The wiki is compiled from raw/ sources; when an answer leans on TRAINING
+   knowledge instead, mark each such claim inline with a dagger and group one
+   note at the foot of the answer. The note doubles as a "wiki gap — research &
+   ingest?" nudge. Dashed border distinguishes it from the solid Disputed callout
+   (dashed = provisional/ungrounded, not a dispute between sources).
+   Usage inline:  …a learned gate.<sup class="ground-mark">&dagger;</sup>
+   Usage note:
+     <aside class="grounding">
+       <span class="label">&dagger; Training-derived</span>
+       <p>The routing internals above lean on training data, not a wiki source.
+          The wiki is thin here — want me to research and ingest one?</p>
+     </aside>
+   ============================================================================ */
+.ground-mark {
+  font-family: var(--font-mono); font-size: .72em; font-weight: 600;
+  color: var(--ink-faint); vertical-align: super; line-height: 0;
+  padding-left: 1px; cursor: help;
+}
+.grounding {
+  margin: 1.75em 0; padding: 1rem 1.25rem; background: var(--unknown-bg);
+  border-left: 4px dashed var(--unknown); border-radius: 0 6px 6px 0;
+}
+.grounding .label { color: var(--unknown); display: block; margin-bottom: .4em; }
+.grounding p:last-child { margin-bottom: 0; }
+
+/* ---------- bespoke diagrams live in inline <svg>; give them room ---------- */
+.figure { margin: 2em 0; text-align: center; }
+.figure svg { max-width: 100%; height: auto; }
+.figure figcaption { margin-top: .6em; font-size: .9rem; color: var(--ink-soft); }

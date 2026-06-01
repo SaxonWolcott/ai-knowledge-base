@@ -42,6 +42,8 @@ knowledge-base/
 ├─ contradictions.md   # registry of disputed claims (links out)
 ├─ llm-wiki.md         # reference: the pattern this wiki implements
 ├─ scripts/            # helper scripts (e.g. clean_vtt.py — VTT→Markdown transcript cleaner)
+│  └─ templates/      # query-kit.css + query-skeleton.html (HTML export kit — §8)
+├─ query-responses/    # query export renders (md/html); gitignored, derived — NOT the wiki
 ├─ raw/               # immutable sources
 │  ├─ clips/          # Obsidian Web Clipper saves
 │  └─ youtube/<id>/   # per-video: raw .vtt, transcript.md, metadata.json (slim), frames/
@@ -164,8 +166,57 @@ calls worth my review. The steps below describe Mode A; Mode B follows the same 
 ### Query
 1. Read `index.md` first to find relevant pages, then drill into them.
 2. Synthesize an answer with `[[links]]` / citations to the pages and sources used.
-3. **Offer to file good answers back** as a `comparison`/`synthesis` page so the exploration
+3. **Mark the grounding (training-derived signal).** The wiki is compiled from `raw/` sources,
+   and an answer should rest on it. When a claim leans materially on your **training knowledge**
+   rather than a wiki page/source, don't suppress it — *flag* it: append a dagger `†` to the
+   claim, and add one short note at the end of the answer that (a) names which parts are
+   training-derived and (b) nudges — *the wiki is thin here; want me to research and ingest a
+   source so this becomes compiled knowledge?* Three states:
+   - **Fully wiki-grounded** → cite pages/sources as usual; no marker.
+   - **Hybrid** → cite the grounded parts; dagger the training-derived ones + footer note.
+   - **Wiki silent** → lead with the note ("the wiki doesn't cover this; the following is from
+     my training, not compiled knowledge"), then answer, then the research offer — never present
+     training facts as wiki knowledge.
+   This applies to query **answers**; pages themselves stay strictly source-grounded.
+4. **Offer to file good answers back** as a `comparison`/`synthesis` page so the exploration
    compounds — and if filed, update `index.md` and `log.md`.
+
+#### Output formats (two independent axes — don't conflate them)
+A query answer has two separate decisions: **how to render it** and **whether it becomes wiki
+knowledge**. Keep them apart.
+
+- **Persist-as-knowledge** is step 4 above: filing a `synthesis`/`comparison` page is the
+  *canonical* act of compounding the wiki — integrated, `[[linked]]`, indexed, logged, living
+  in `AI Knowledge Base/`. This is unchanged and is **not** the same as a markdown export.
+- **Render format** is the delivery tier, and its outputs live in `query-responses/` (gitignored,
+  derived) — **never** in `AI Knowledge Base/`, so they don't pollute the graph with unlinked
+  duplicates that `/lint` would flag.
+
+Three render tiers:
+1. **In-chat** (default) — synthesize directly in the response. Simple; always available.
+2. **Markdown export** — write `query-responses/<kebab-question>.md` for reading in Obsidian/
+   browser when terminal output is hard to parse. A *reading copy*, not a synthesis page.
+3. **HTML export** (opt-in, higher effort/cost) — write `query-responses/<kebab-question>.html`.
+   Reserve for answers where **visuals earn the cost**: diagrams, comparison tables, or embedded
+   YouTube frames from `raw/youtube/<id>/frames/`.
+
+**Selecting a tier:** honor a `--md` / `--html` arg if given; otherwise answer in-chat, then
+*offer* the exports. The synthesis-page offer (step 4) stays separate and intent-based.
+
+**HTML conventions** (see `scripts/templates/`):
+- **Self-contained single file** — inline `scripts/templates/query-kit.css`; **inline SVG** for
+  any diagram (no CDN/JS libs — must render offline and when shared). Embed frames via relative
+  `raw/youtube/<id>/frames/` paths, or base64 if the file will travel.
+- **Thin shared kit, bespoke everything else** — use the kit's 5 wiki-semantic components
+  (citation, `confidence` badge, `## Disputed` callout, video-frame figure, training-derived
+  grounding note) for consistency and correct semantics; design layout, visual direction, and
+  diagrams *freshly per answer*. The kit is recurring chrome, not a page template.
+- **`[[wikilinks]]` render as styled plain text** (portable, non-clickable) — Obsidian linking
+  doesn't work in a browser.
+- **QA checklist before done:** citations resolve to real pages/sources; every embedded image
+  path exists; `confidence` badges present on contested claims; `## Disputed` content rendered as
+  callouts; any training-derived claim carries a `†` and a grounding note; file renders offline
+  (no network requests).
 
 ### Lint (health check — report, don't auto-fix without approval)
 Scan for: orphan pages (no inbound links), dangling `[[links]]` worth creating, stale/
@@ -212,6 +263,13 @@ added for YouTube transcript cleanup — see below). No subagents, MCP, or hooks
   because deduping/cleaning rolling auto-sub VTT in-context is tedious and non-deterministic
   (§12's "when manual gets tedious" trigger). Gemini multimodal was rejected — derived (not
   raw) output + a billed dependency; revisit only if frame-grabbing proves insufficient.
+- **Query output tiers + HTML kit (`scripts/templates/query-kit.css` + `query-skeleton.html`)**
+  — terminal markdown is hard to parse for substantial answers, so `/query` can now export a
+  markdown or HTML reading copy to `query-responses/` (gitignored, derived — distinct from a
+  canonical synthesis page; see §8). The HTML kit is a *thin* set of design tokens + 4
+  wiki-semantic components that get inlined into self-contained, offline single files; per-answer
+  layout/diagrams stay bespoke. **Deferred trigger:** add an HTML *generator script* only if
+  hand-assembling exports gets tedious (filling HTML is model work, not script work for now).
 
 **Deferred — add only when the wiki demands it (record the trigger):**
 - **Lint fan-out subagent (`model: haiku`)** — when the wiki passes ~100 pages or `/lint`
@@ -255,3 +313,22 @@ Avoid building these prematurely — Karpathy's point is the index + a good sche
 - **Main-agent-only Phase 1** — subagents buy context isolation + parallelism, not token
   savings; a paper-reader subagent would strip raw material out of interactive discussion,
   and lint fan-out only pays off at scale. See §12 for when to revisit.
+- **Query output: render format and persistence are two independent axes** (§8) — filing a
+  synthesis page (compound the wiki) is orthogonal to how an answer is rendered (in-chat / md /
+  html). Exports are *reading copies* in `query-responses/`, gitignored and kept out of the graph
+  so they don't read as canonical knowledge or trip `/lint`'s orphan/duplicate checks. HTML uses
+  a **thin component kit, not a rigid template** — standardizing only the recurring wiki-semantic
+  chrome (citations, confidence badges, `## Disputed` callouts, video-frame figures, training-
+  derived grounding notes) keeps docs consistent and semantically correct while leaving per-answer
+  layout and *especially bespoke diagrams* fully expressive (the whole point of the higher-cost
+  HTML tier). HTML is opt-in and reserved for answers where visuals earn the cost.
+- **Grounding signal: flag training-derived claims, don't suppress them** (§8 Query) — the wiki's
+  value is that knowledge is *compiled from `raw/` sources*, but the model's parametric knowledge
+  is still useful for explanation and for answering where the wiki is thin. Rather than ban it
+  (too strict — kills useful synthesis) or let it pass invisibly (the real hallucination risk —
+  ungrounded, undated, knowledge-cutoff-bound claims masquerading as compiled knowledge), we
+  *mark* it: a `†` on the claim plus a footer note. The note does double duty — honest disclosure
+  **and** a lint-style nudge to go research+ingest a source, turning a wiki gap into an action.
+  Scope is **query answers only**; pages stay strictly source-grounded (a marked-up page would
+  blur the raw/wiki boundary the architecture rests on). Mirrors the spirit of credibility-
+  weighted tweet ingest and `confidence:` — surface epistemic state, don't hide it.

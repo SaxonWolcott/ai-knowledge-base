@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<!--
+  query-skeleton.html — reference for /query HTML exports (CLAUDE.md §8).
+
+  This is a SELF-CONTAINED single file: the entire query-kit.css is inlined in
+  the <style> block below, there are zero network requests, and the diagram is
+  inline SVG. Copy this structure for a real export and replace the body.
+
+  RULES (see CLAUDE.md §8):
+   • Inline query-kit.css (don't <link> it) — exports must render offline / when shared.
+   • Use the kit components for the recurring chrome (citations, confidence
+     badges, disputed callouts, video-frame figures, training-derived grounding
+     notes) so semantics stay correct.
+   • Design layout + diagrams BESPOKE per answer. Diagrams = inline <svg> only
+     (no CDN, no JS chart libs).
+   • [[wikilinks]] → <span class="wikilink">name</span> (styled plain text).
+   • Embed video frames via a relative raw/youtube/<id>/frames/ path (or base64).
+   • Before done, run the QA checklist: citations resolve, image paths exist,
+     confidence badges on contested claims, training-derived claims carry a †
+     and a grounding note, renders offline.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Query export — skeleton</title>
+<style>
+/* ⇩ PASTE THE FULL CONTENTS OF scripts/templates/query-kit.css HERE ⇩
+   (kept in sync below so this reference renders standalone) */
+
+:root {
+  --paper:#f5f0e6; --paper-edge:#ece3d3; --panel:#ebe2d1;
+  --ink:#211c16; --ink-soft:#4d453a; --ink-faint:#8a8071; --rule:#d9cfba;
+  --accent:#9b2d20; --accent-2:#c2602f;
+  --ok:#2f6b3a; --ok-bg:#e4ecdf; --warn:#9a6a12; --warn-bg:#f0e6cf;
+  --unknown:#6b6358; --unknown-bg:#e7e0d2;
+  --font-display:"Constantia","Cambria","Palatino Linotype","Iowan Old Style",Georgia,serif;
+  --font-body:"Cambria","Palatino Linotype","Iowan Old Style",Georgia,serif;
+  --font-mono:"Cascadia Mono","Consolas","JetBrains Mono",ui-monospace,"SFMono-Regular",monospace;
+  --measure:70ch; --gap:1.5rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper:#181511; --paper-edge:#221d16; --panel:#221d16;
+    --ink:#ece3d0; --ink-soft:#c3b8a3; --ink-faint:#8a8071; --rule:#38301f;
+    --accent:#e07a5f; --accent-2:#d99a5b;
+    --ok:#8fbf86; --ok-bg:#1d2a1c; --warn:#d9ab5b; --warn-bg:#2c2410;
+    --unknown:#b3a896; --unknown-bg:#262015;
+  }
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-body);
+  font-size:1.0625rem; line-height:1.65; -webkit-font-smoothing:antialiased; }
+.dossier { max-width:var(--measure); margin:0 auto; padding:clamp(1.5rem,4vw,4rem) clamp(1.25rem,5vw,3rem) 6rem; }
+h1,h2,h3 { font-family:var(--font-display); line-height:1.15; font-weight:700; }
+h1 { font-size:clamp(2rem,5vw,3rem); margin:0 0 .25em; letter-spacing:-0.01em; }
+h2 { font-size:1.6rem; margin:2.5em 0 .6em; padding-bottom:.3em; border-bottom:1px solid var(--rule); }
+h3 { font-size:1.2rem; margin:1.8em 0 .4em; color:var(--ink-soft); }
+p { margin:0 0 1em; }
+a { color:var(--accent); text-underline-offset:2px; }
+strong { color:var(--ink); }
+hr { border:0; border-top:1px solid var(--rule); margin:2.5em 0; }
+code,pre { font-family:var(--font-mono); font-size:.92em; }
+pre { background:var(--panel); border:1px solid var(--rule); padding:1rem 1.1rem; border-radius:6px; overflow-x:auto; }
+code { background:var(--panel); padding:.1em .35em; border-radius:4px; }
+pre code { background:none; padding:0; }
+.label { font-family:var(--font-mono); font-size:.7rem; font-weight:600; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-faint); }
+.dossier__head { margin-bottom:3rem; }
+.dossier__kicker { color:var(--accent); }
+.dossier__meta { margin-top:.9rem; padding-top:.9rem; border-top:2px solid var(--ink);
+  display:flex; flex-wrap:wrap; gap:1.25rem; font-family:var(--font-mono); font-size:.8rem; color:var(--ink-soft); }
+.dossier__meta b { color:var(--ink); font-weight:600; }
+table { width:100%; border-collapse:collapse; margin:1.5em 0; font-size:.96rem; }
+th,td { text-align:left; padding:.6em .8em; border-bottom:1px solid var(--rule); vertical-align:top; }
+thead th { font-family:var(--font-mono); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ink-faint); border-bottom:2px solid var(--ink); }
+tbody tr:hover { background:var(--panel); }
+.wikilink { font-weight:600; color:var(--accent); border-bottom:1px dotted var(--accent-2); cursor:help; }
+.cite { font-family:var(--font-mono); font-size:.68em; font-weight:600; color:var(--accent);
+  vertical-align:super; line-height:0; padding-left:1px; }
+.citations { margin-top:3.5rem; padding-top:1rem; border-top:1px solid var(--rule);
+  font-size:.9rem; color:var(--ink-soft); line-height:1.5; }
+.citations li { margin-bottom:.5em; }
+.citations .cite-src { font-family:var(--font-mono); font-size:.85em; color:var(--ink-faint); }
+.conf { display:inline-block; font-family:var(--font-mono); font-size:.66rem; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; padding:.15em .55em; border-radius:999px;
+  border:1px solid currentColor; vertical-align:middle; white-space:nowrap; }
+.conf::before { content:"● "; font-size:.7em; }
+.conf--confirmed { color:var(--ok); background:var(--ok-bg); }
+.conf--contested { color:var(--warn); background:var(--warn-bg); }
+.conf--unverified { color:var(--unknown); background:var(--unknown-bg); }
+.disputed { margin:1.75em 0; padding:1rem 1.25rem; background:var(--warn-bg);
+  border-left:4px solid var(--warn); border-radius:0 6px 6px 0; }
+.disputed .label { color:var(--warn); display:block; margin-bottom:.4em; }
+.disputed p:last-child { margin-bottom:0; }
+.video-frame { margin:2em 0; }
+.video-frame img { display:block; width:100%; height:auto; border-radius:8px;
+  border:1px solid var(--rule); box-shadow:0 8px 24px rgba(0,0,0,.12); }
+.video-frame figcaption { margin-top:.6em; font-size:.9rem; color:var(--ink-soft); line-height:1.45; }
+.video-frame__attr { display:block; margin-top:.2em; font-family:var(--font-mono); font-size:.75rem; color:var(--ink-faint); }
+.ground-mark { font-family:var(--font-mono); font-size:.72em; font-weight:600; color:var(--ink-faint);
+  vertical-align:super; line-height:0; padding-left:1px; cursor:help; }
+.grounding { margin:1.75em 0; padding:1rem 1.25rem; background:var(--unknown-bg);
+  border-left:4px dashed var(--unknown); border-radius:0 6px 6px 0; }
+.grounding .label { color:var(--unknown); display:block; margin-bottom:.4em; }
+.grounding p:last-child { margin-bottom:0; }
+.figure { margin:2em 0; text-align:center; }
+.figure svg { max-width:100%; height:auto; }
+.figure figcaption { margin-top:.6em; font-size:.9rem; color:var(--ink-soft); }
+</style>
+</head>
+<body>
+<article class="dossier">
+
+  <!-- ── document header ───────────────────────────────────────────── -->
+  <header class="dossier__head">
+    <span class="label dossier__kicker">Wiki query</span>
+    <h1>How does X compare to Y?</h1>
+    <p class="dossier__meta">
+      <span><b>Asked</b> 2026-06-01</span>
+      <span><b>Sources</b> 3 pages · 2 sources</span>
+      <span><b>Render</b> HTML export</span>
+    </p>
+  </header>
+
+  <!-- ── prose + inline components ─────────────────────────────────── -->
+  <p>
+    A normal paragraph. Reference a wiki page as styled plain text —
+    <span class="wikilink">mixture-of-experts</span> — never as a live link.
+    Attach a citation marker to a sourced claim.<sup class="cite">[1]</sup>
+    A claim from a low-credibility source carries a badge:
+    routing halves active params <span class="conf conf--unverified">unverified</span>.
+    A well-supported claim can be marked <span class="conf conf--confirmed">confirmed</span>,
+    and a contested one <span class="conf conf--contested">contested</span>.
+    A claim resting on training data rather than a wiki source gets a
+    dagger.<sup class="ground-mark">&dagger;</sup>
+  </p>
+
+  <h2>A comparison table</h2>
+  <table>
+    <thead><tr><th>Dimension</th><th>Approach X</th><th>Approach Y</th></tr></thead>
+    <tbody>
+      <tr><td>Active params</td><td>~13B</td><td>~70B</td></tr>
+      <tr><td>Routing</td><td>top-2 of 8 experts</td><td>dense</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ── disputed callout ──────────────────────────────────────────── -->
+  <aside class="disputed">
+    <span class="label">Disputed</span>
+    <p>
+      Whether sparse routing degrades calibration is contested:
+      <span class="wikilink">paper-a</span> reports a drop, while
+      <span class="wikilink">paper-b</span>'s ablation finds none.<sup class="cite">[2]</sup>
+    </p>
+  </aside>
+
+  <!-- ── bespoke diagram: inline SVG only (no CDN/JS) ──────────────── -->
+  <figure class="figure">
+    <svg viewBox="0 0 360 120" role="img" aria-label="Token routed through a gate to two of four experts">
+      <rect x="6" y="48" width="58" height="24" rx="4" fill="none" stroke="#9b2d20" stroke-width="1.5"/>
+      <text x="35" y="64" font-family="monospace" font-size="11" fill="#4d453a" text-anchor="middle">token</text>
+      <circle cx="120" cy="60" r="18" fill="none" stroke="#c2602f" stroke-width="1.5"/>
+      <text x="120" y="64" font-family="monospace" font-size="10" fill="#4d453a" text-anchor="middle">gate</text>
+      <line x1="64" y1="60" x2="102" y2="60" stroke="#8a8071" stroke-width="1.5"/>
+      <g font-family="monospace" font-size="10" fill="#4d453a" text-anchor="middle">
+        <rect x="270" y="6"  width="84" height="22" rx="4" fill="none" stroke="#2f6b3a" stroke-width="1.5"/><text x="312" y="21">expert 1 ✓</text>
+        <rect x="270" y="34" width="84" height="22" rx="4" fill="none" stroke="#d9cfba" stroke-width="1.5"/><text x="312" y="49">expert 2</text>
+        <rect x="270" y="62" width="84" height="22" rx="4" fill="none" stroke="#2f6b3a" stroke-width="1.5"/><text x="312" y="77">expert 3 ✓</text>
+        <rect x="270" y="90" width="84" height="22" rx="4" fill="none" stroke="#d9cfba" stroke-width="1.5"/><text x="312" y="105">expert 4</text>
+      </g>
+      <g stroke="#9b2d20" stroke-width="1.5"><line x1="138" y1="60" x2="270" y2="17"/><line x1="138" y1="60" x2="270" y2="73"/></g>
+      <g stroke="#d9cfba" stroke-width="1.5"><line x1="138" y1="60" x2="270" y2="45"/><line x1="138" y1="60" x2="270" y2="101"/></g>
+    </svg>
+    <figcaption>Top-2 routing: the gate activates two of four experts per token (bespoke inline SVG).</figcaption>
+  </figure>
+
+  <!-- ── video-frame figure ────────────────────────────────────────── -->
+  <!-- Real usage:
+       <figure class="video-frame">
+         <img src="../raw/youtube/aircAruvnKk/frames/03.png" alt="weight grid heatmap">
+         <figcaption>The weight grid visualized as a heatmap.
+           <span class="video-frame__attr">3Blue1Brown — But what is a Neural Network? (t=12:30)</span>
+         </figcaption>
+       </figure>
+       Below: an inline-SVG placeholder so this reference renders without a real image. -->
+  <figure class="video-frame">
+    <svg viewBox="0 0 640 200" role="img" aria-label="placeholder for a captured video frame" style="display:block;width:100%;height:auto;border:1px solid #d9cfba;border-radius:8px;background:#ebe2d1">
+      <text x="320" y="105" font-family="monospace" font-size="14" fill="#8a8071" text-anchor="middle">[ captured video frame — raw/youtube/&lt;id&gt;/frames/NN.png ]</text>
+    </svg>
+    <figcaption>What the frame shows, in one line.
+      <span class="video-frame__attr">Channel — Video Title (t=mm:ss)</span>
+    </figcaption>
+  </figure>
+
+  <!-- ── grounding note: training-derived parts + research nudge ────── -->
+  <aside class="grounding">
+    <span class="label">&dagger; Training-derived</span>
+    <p>
+      The routing-internals detail above leans on training data, not an ingested
+      wiki source. The wiki is thin on MoE internals — want me to research and
+      ingest a source so this becomes compiled knowledge?
+    </p>
+  </aside>
+
+  <!-- ── citations footer ──────────────────────────────────────────── -->
+  <ol class="citations">
+    <li id="c1">Author et al. — Source Title. <span class="cite-src">arXiv:1234.56789</span></li>
+    <li id="c2">Lab — Release Notes (2026). <span class="cite-src">example.com/post</span></li>
+  </ol>
+
+</article>
+</body>
+</html>
